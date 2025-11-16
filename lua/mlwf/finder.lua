@@ -29,20 +29,26 @@ local function update_results()
   -- Debounce search (wait 200ms after user stops typing)
   search_timer = vim.loop.new_timer()
   search_timer:start(200, 0, vim.schedule_wrap(function()
-    vim.notify('Query: "' .. (query or '') .. '"', vim.log.levels.INFO)
-    if query and query ~= '' then
-      local results = search.search(query, {
-        cwd = vim.fn.getcwd(),
-        exclude_patterns = M.config.exclude_patterns or {},
-      })
+    local ok, err = pcall(function()
+      vim.notify('Query: "' .. (query or '') .. '"', vim.log.levels.INFO)
+      if query and query ~= '' then
+        local results = search.search(query, {
+          cwd = vim.fn.getcwd(),
+          exclude_patterns = M.config.exclude_patterns or {},
+        })
 
-      vim.notify('Rendering ' .. #results .. ' results', vim.log.levels.INFO)
-      -- Render results
-      ui.render_results(results, query)
-    else
-      -- Clear results if query is empty
-      vim.notify('Query empty, clearing results', vim.log.levels.INFO)
-      ui.render_results({}, '')
+        vim.notify('Rendering ' .. #results .. ' results', vim.log.levels.INFO)
+        -- Render results
+        ui.render_results(results, query)
+      else
+        -- Clear results if query is empty
+        vim.notify('Query empty, clearing results', vim.log.levels.INFO)
+        ui.render_results({}, '')
+      end
+    end)
+
+    if not ok then
+      vim.notify('ERROR in timer callback: ' .. tostring(err), vim.log.levels.ERROR)
     end
 
     -- Clean up timer
@@ -124,6 +130,8 @@ local function setup_autocmds(buf)
     group = augroup,
     buffer = buf,
     callback = function()
+      vim.notify('TextChanged autocmd fired', vim.log.levels.INFO)
+
       -- Prevent multiple lines
       local line_count = vim.api.nvim_buf_line_count(buf)
       if line_count > 1 then
@@ -133,7 +141,9 @@ local function setup_autocmds(buf)
 
       -- Only update if we're on the first line (prompt line)
       local cursor = vim.api.nvim_win_get_cursor(0)
+      vim.notify('Cursor at line: ' .. cursor[1], vim.log.levels.INFO)
       if cursor[1] == 1 then
+        vim.notify('Calling update_results()', vim.log.levels.INFO)
         update_results()
       end
     end,
