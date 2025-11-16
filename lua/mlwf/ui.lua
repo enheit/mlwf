@@ -9,6 +9,7 @@ local state = {
   prompt = '',
   selected_index = 1,
   results = {},
+  updating = false,  -- Guard flag to prevent recursion
 }
 
 -- Get color from highlight group
@@ -113,15 +114,17 @@ function M.render_results(results, query)
     end
   end
 
-  -- Update buffer (disable events to prevent infinite loop)
+  -- Prevent recursion with guard flag
+  if state.updating then
+    return
+  end
+  state.updating = true
+
+  -- Update buffer
   vim.api.nvim_buf_set_option(state.buf, 'modifiable', true)
 
   -- Save cursor position
   local cursor_pos = vim.api.nvim_win_get_cursor(state.win)
-
-  -- Use eventignore to prevent TextChanged from firing during update
-  local save_eventignore = vim.o.eventignore
-  vim.o.eventignore = 'all'
 
   vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
 
@@ -130,14 +133,10 @@ function M.render_results(results, query)
     pcall(vim.api.nvim_win_set_cursor, state.win, cursor_pos)
   end
 
-  -- Restore eventignore
-  vim.o.eventignore = save_eventignore
+  -- Release guard flag
+  state.updating = false
 
   -- Keep buffer modifiable so user can type in prompt line
-
-  -- Force complete redraw (important for display refresh during insert mode)
-  vim.cmd('redraw!')
-  vim.cmd('redrawstatus!')
 
   -- Clear previous highlights
   vim.api.nvim_buf_clear_namespace(state.buf, -1, 0, -1)
@@ -252,6 +251,7 @@ function M.close()
   state.win = nil
   state.results = {}
   state.selected_index = 1
+  state.updating = false
 end
 
 -- Check if picker is open
