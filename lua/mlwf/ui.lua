@@ -116,11 +116,31 @@ function M.render_results(results, query)
     end
   end
 
-  -- Update buffer
+  -- Update buffer (disable events to prevent infinite loop)
   vim.api.nvim_buf_set_option(state.buf, 'modifiable', true)
+
+  -- Save cursor position
+  local cursor_pos = vim.api.nvim_win_get_cursor(state.win)
+
+  -- Use eventignore to prevent TextChanged from firing during update
+  local save_eventignore = vim.o.eventignore
+  vim.o.eventignore = 'all'
+
   vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
+
+  -- Restore cursor position (keep on prompt line)
+  if cursor_pos[1] == 1 then
+    pcall(vim.api.nvim_win_set_cursor, state.win, cursor_pos)
+  end
+
+  -- Restore eventignore
+  vim.o.eventignore = save_eventignore
+
   vim.notify('Buffer updated with ' .. #lines .. ' lines', vim.log.levels.INFO)
   -- Keep buffer modifiable so user can type in prompt line
+
+  -- Force redraw
+  vim.cmd('redraw')
 
   -- Clear previous highlights
   vim.api.nvim_buf_clear_namespace(state.buf, -1, 0, -1)
