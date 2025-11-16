@@ -55,8 +55,10 @@ brew install ripgrep
         'build',
       },
       window_height = 15,
-      keymap = '<leader>fw',  -- find word
     })
+
+    -- Set keybinding
+    vim.keymap.set('n', '<leader>fw', ':MLWFFind<CR>', { desc = 'Find Word' })
   end,
 }
 ```
@@ -123,25 +125,21 @@ require('mlwf').setup({
 
   -- Height of the finder window (in lines)
   window_height = 15,
-
-  -- Keybinding for opening the word finder
-  -- Set to false to disable default keybinding
-  keymap = '<leader>fw',
 })
+
+-- Set keybinding
+vim.keymap.set('n', '<leader>fw', ':MLWFFind<CR>', { desc = 'Find Word' })
 ```
 
 ### Custom keybinding example
 
 ```lua
--- Disable default keybinding and set your own
 require('mlwf').setup({
-  keymap = false,
+  -- your config here
 })
 
--- Set custom keybinding
-vim.keymap.set('n', '<C-f>', function()
-  require('mlwf').find()
-end, { desc = 'Find word' })
+-- Use any keybinding you prefer
+vim.keymap.set('n', '<C-f>', ':MLWFFind<CR>', { desc = 'Find word' })
 ```
 
 ### Exclude additional patterns
