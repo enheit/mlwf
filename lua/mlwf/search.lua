@@ -38,7 +38,8 @@ function M.search(query, opts)
   -- --hidden: search hidden files
   -- --no-heading: don't group by file
   -- --color=never: no color codes
-  local cmd = 'rg --vimgrep --hidden --no-heading --color=never --smart-case'
+  -- --fixed-strings: treat pattern as literal string, not regex
+  local cmd = 'rg --vimgrep --hidden --no-heading --color=never --fixed-strings --smart-case'
 
   -- Add exclude patterns
   for _, pattern in ipairs(exclude_patterns) do
