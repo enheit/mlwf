@@ -8,8 +8,9 @@ local M = {}
 -- Plugin configuration (will be set from init.lua)
 M.config = {}
 
--- Debounce timer for search
-local search_timer = nil
+-- Track last query and results to prevent unnecessary re-search
+local last_query = ''
+local last_results = {}
 
 -- Update results based on current query
 local function update_results()
@@ -19,36 +20,23 @@ local function update_results()
 
   local query = ui.get_query()
 
-  -- Cancel previous search timer
-  if search_timer then
-    search_timer:stop()
-    search_timer:close()
-    search_timer = nil
-  end
+  -- Only search if query actually changed
+  if query ~= last_query then
+    last_query = query
 
-  -- Debounce search (wait 200ms after user stops typing)
-  search_timer = vim.loop.new_timer()
-  search_timer:start(200, 0, vim.schedule_wrap(function()
+    -- Search immediately on every keystroke
     if query and query ~= '' then
-      local results = search.search(query, {
+      last_results = search.search(query, {
         cwd = vim.fn.getcwd(),
         exclude_patterns = M.config.exclude_patterns or {},
       })
-
-      -- Render results
-      ui.render_results(results, query)
     else
-      -- Clear results if query is empty
-      ui.render_results({}, '')
+      last_results = {}
     end
+  end
 
-    -- Clean up timer
-    if search_timer then
-      search_timer:stop()
-      search_timer:close()
-      search_timer = nil
-    end
-  end))
+  -- Always re-render to keep list visible (even during navigation)
+  ui.render_results(last_results, query)
 end
 
 -- Handle file selection
@@ -166,12 +154,9 @@ local function setup_autocmds(buf)
     buffer = buf,
     callback = function()
       ui.close()
-      -- Clean up timer if exists
-      if search_timer then
-        search_timer:stop()
-        search_timer:close()
-        search_timer = nil
-      end
+      -- Reset cache
+      last_query = ''
+      last_results = {}
     end,
   })
 end
@@ -183,6 +168,10 @@ function M.open()
     vim.notify('ripgrep (rg) is not installed. Please install ripgrep first.', vim.log.levels.ERROR)
     return
   end
+
+  -- Reset cache when opening
+  last_query = ''
+  last_results = {}
 
   -- Open UI
   local height = M.config.window_height or 15

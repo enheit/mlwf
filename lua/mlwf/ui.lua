@@ -9,7 +9,6 @@ local state = {
   prompt = '',
   selected_index = 1,
   results = {},
-  updating = false,  -- Guard flag to prevent recursion
 }
 
 -- Get color from highlight group
@@ -114,28 +113,9 @@ function M.render_results(results, query)
     end
   end
 
-  -- Prevent recursion with guard flag
-  if state.updating then
-    return
-  end
-  state.updating = true
-
   -- Update buffer
   vim.api.nvim_buf_set_option(state.buf, 'modifiable', true)
-
-  -- Save cursor position
-  local cursor_pos = vim.api.nvim_win_get_cursor(state.win)
-
   vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
-
-  -- Restore cursor position (keep on prompt line)
-  if cursor_pos[1] == 1 then
-    pcall(vim.api.nvim_win_set_cursor, state.win, cursor_pos)
-  end
-
-  -- Release guard flag
-  state.updating = false
-
   -- Keep buffer modifiable so user can type in prompt line
 
   -- Clear previous highlights
@@ -251,7 +231,6 @@ function M.close()
   state.win = nil
   state.results = {}
   state.selected_index = 1
-  state.updating = false
 end
 
 -- Check if picker is open
