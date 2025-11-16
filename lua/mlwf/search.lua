@@ -48,14 +48,20 @@ function M.search(query, opts)
   -- Add query and directory
   cmd = cmd .. ' ' .. vim.fn.shellescape(query) .. ' ' .. vim.fn.shellescape(cwd)
 
+  -- Debug: print the command
+  vim.notify('Search command: ' .. cmd, vim.log.levels.INFO)
+
   -- Execute search
   local handle = io.popen(cmd .. ' 2>/dev/null')
   if not handle then
+    vim.notify('Failed to execute ripgrep', vim.log.levels.ERROR)
     return {}
   end
 
   local results = {}
+  local line_count = 0
   for line in handle:lines() do
+    line_count = line_count + 1
     -- Parse ripgrep output: filename:line:column:content
     local filename, line_num, col, content = line:match('([^:]+):(%d+):(%d+):(.*)')
     if filename and line_num and content then
@@ -75,6 +81,9 @@ function M.search(query, opts)
     end
   end
   handle:close()
+
+  -- Debug: show results count
+  vim.notify('Found ' .. #results .. ' results from ' .. line_count .. ' lines', vim.log.levels.INFO)
 
   return results
 end
