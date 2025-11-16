@@ -84,10 +84,7 @@ end
 
 -- Render results in the buffer
 function M.render_results(results, query)
-  vim.notify('UI.render_results called with ' .. #results .. ' results, query="' .. (query or '') .. '"', vim.log.levels.INFO)
-
   if not state.buf or not vim.api.nvim_buf_is_valid(state.buf) then
-    vim.notify('Buffer is invalid!', vim.log.levels.ERROR)
     return
   end
 
@@ -136,11 +133,11 @@ function M.render_results(results, query)
   -- Restore eventignore
   vim.o.eventignore = save_eventignore
 
-  vim.notify('Buffer updated with ' .. #lines .. ' lines', vim.log.levels.INFO)
   -- Keep buffer modifiable so user can type in prompt line
 
-  -- Force redraw
-  vim.cmd('redraw')
+  -- Force complete redraw (important for display refresh during insert mode)
+  vim.cmd('redraw!')
+  vim.cmd('redrawstatus!')
 
   -- Clear previous highlights
   vim.api.nvim_buf_clear_namespace(state.buf, -1, 0, -1)
