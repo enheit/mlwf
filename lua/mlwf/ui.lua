@@ -84,7 +84,10 @@ end
 
 -- Render results in the buffer
 function M.render_results(results, query)
+  vim.notify('UI.render_results called with ' .. #results .. ' results, query="' .. (query or '') .. '"', vim.log.levels.INFO)
+
   if not state.buf or not vim.api.nvim_buf_is_valid(state.buf) then
+    vim.notify('Buffer is invalid!', vim.log.levels.ERROR)
     return
   end
 
@@ -116,6 +119,7 @@ function M.render_results(results, query)
   -- Update buffer
   vim.api.nvim_buf_set_option(state.buf, 'modifiable', true)
   vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
+  vim.notify('Buffer updated with ' .. #lines .. ' lines', vim.log.levels.INFO)
   -- Keep buffer modifiable so user can type in prompt line
 
   -- Clear previous highlights

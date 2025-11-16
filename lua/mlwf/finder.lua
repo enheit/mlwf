@@ -29,16 +29,19 @@ local function update_results()
   -- Debounce search (wait 200ms after user stops typing)
   search_timer = vim.loop.new_timer()
   search_timer:start(200, 0, vim.schedule_wrap(function()
+    vim.notify('Query: "' .. (query or '') .. '"', vim.log.levels.INFO)
     if query and query ~= '' then
       local results = search.search(query, {
         cwd = vim.fn.getcwd(),
         exclude_patterns = M.config.exclude_patterns or {},
       })
 
+      vim.notify('Rendering ' .. #results .. ' results', vim.log.levels.INFO)
       -- Render results
       ui.render_results(results, query)
     else
       -- Clear results if query is empty
+      vim.notify('Query empty, clearing results', vim.log.levels.INFO)
       ui.render_results({}, '')
     end
 
