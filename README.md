@@ -2,6 +2,8 @@
 
 A fast, live text search plugin for Neovim with smart filtering and beautiful highlighting. Search for words, environment variables, function names, or any text across your entire project.
 
+[![asciicast](https://asciinema.org/a/17rnZUrJY61cmnjDwzgsj1BEm.svg)](https://asciinema.org/a/17rnZUrJY61cmnjDwzgsj1BEm)
+
 ## Features
 
 - **Live search** - Results update as you type
